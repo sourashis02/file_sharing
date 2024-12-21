@@ -5,10 +5,11 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-from file_sys.models import FileData
+from file_sys.models import FileData, SharedWith
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime
 from django.http import HttpResponse
+from users.models import CustomUser as User
 
 
 def encrypt_at_rest(data, key):
@@ -62,15 +63,31 @@ class FileUploadAPIView(APIView):
 class FileListAPIView(APIView):
     permission_classes=[IsAuthenticated]
     def get(self, request, *args, **kwargs):
-        files = FileData.objects.filter(user=request.user)
-        file_list = []
-        for file in files:
-            file_list.append({
+        owner_files = FileData.objects.filter(user=request.user)
+        shared_files = SharedWith.objects.filter(user=request.user)
+        
+        owener_file_list = []
+        shared_file_list = []
+        
+        for file in owner_files:
+            owener_file_list.append({
                 "id": file.id,
                 "file_name": file.name,
-                "file_path": file.filePath
+                "file_path": file.filePath,
+                "owner": file.user.name
             })
-        return Response(file_list, status=status.HTTP_200_OK)
+        for shared_file in shared_files:
+            shared_file_list.append({
+                "id": shared_file.file.id,
+                "file_name": shared_file.file.name,
+                "file_path": shared_file.file.filePath,
+                "owner": shared_file.file.user.name
+            })
+        resp_data={
+            "owner_files": owener_file_list,
+            "shared_files": shared_file_list
+        }
+        return Response(resp_data, status=status.HTTP_200_OK)
     
     
 class FileDownloadAPIView(APIView):
@@ -102,4 +119,26 @@ class FileDownloadAPIView(APIView):
             return response
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class FileShareAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        email=request.data.get('email')
+        id=request.data.get('id')
+        if not id:
+            return Response({"error": "File ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            file = FileData.objects.get(id=int(id))
+        except FileData.DoesNotExist:
+            return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.id != file.user.id:
+            return Response({"error": "You cannot share other user's file."}, status=status.HTTP_400_BAD_REQUEST)
+        user=User.objects.get(email=email)
+        if not user:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        SharedWith.objects.create(file=file,user=user)
+        return Response({"message": "File shared successfully."}, status=status.HTTP_200_OK)
+        
         

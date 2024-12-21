@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
+from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
 
@@ -57,15 +58,37 @@ class LoginView(APIView):
                     user.tokens.pop(0)
                 user.tokens.append(tokens)
                 User.objects.update(tokens=user.tokens)
-                return Response(tokens,status=status.HTTP_200_OK)
+                respData={
+                    'token': tokens['access'],
+                    'email': user.email
+                }
+                return Response(respData,status=status.HTTP_200_OK)
             else:
                 return Response({"error": "User account is disabled."}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({"error": "Invalid username or password."}, status=status.HTTP_401_UNAUTHORIZED)
         
+
 class LogoutView(APIView):
     def get(self, request):
-        request.user.auth_token.delete()
-        return Response({"message": "User logged out successfully."}, status=status.HTTP_200_OK)
+        # Extract token from headers
+        token = request.headers.get('Authorization')
+        if not token or not token.startswith('Bearer '):
+            return Response({"error": "Authorization token is missing or invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        token = token.replace('Bearer ', '')
+
+        try:
+            user = request.user
+            for tokens in user.tokens:
+                if tokens['access'] == token:
+                    user.tokens.remove(tokens)
+            User.objects.update(tokens=user.tokens)
+            return Response({"message": "User logged out successfully."}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
 
