@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  django:
+    image: django_secure_file_system:0.0.1
+    build: .
+    ports:
+      - "8000:8000"
