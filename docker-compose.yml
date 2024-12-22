@@ -1,0 +1,16 @@
+version: '3.10'
+services:
+  django:
+    container_name: django
+    image: django_secure_file_system:0.0.1
+    build:
+      context: ./abnormalSecurity-Backend
+    ports:
+      - "8000:8000"
+  react:
+    container_name: react
+    image: react_secure_file_system:0.0.1
+    build:
+      context: ./abnormalSecurity-Frontend/secure_file_sys
+    ports:
+      - "5173:5173"
