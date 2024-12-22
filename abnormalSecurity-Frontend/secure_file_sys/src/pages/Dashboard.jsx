@@ -1,28 +1,30 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../components/AuthProvider";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import useLoader from "../components/Loader";
+import { setAuth } from "../redux/authSlice";
 import { API_URL } from "../App";
 import { useNavigate } from "react-router-dom";
 import UploadModal from "../components/UploadModal";
+import TableView from "../components/TableView";
+import { setSharedFiles, setOwnerFiles } from "../redux/fileDataSlice";
+
 
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState("myFiles");
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
-    const [filesData, setFilesData] = useState({
-        shared_files: [],
-        owner_files: []
-    });
+    const dispatch = useDispatch();
 
     const navigate = useNavigate();
 
-    const { auth, setAuth } = useAuth();
+    const { auth } = useSelector((state) => state.auth);
+    const fileData = useSelector((state) => state.fileData);
     const { loader, setIsLoading } = useLoader();
 
     const handleTabChange = (tab) => setActiveTab(tab);
     const toggleUploadModal = () => setUploadModalOpen(!isUploadModalOpen);
 
     const handleLogout = () => {
-        navigate("/login");
         fetch(`${API_URL}/auth/logout/`, {
             method: "GET",
             headers: {
@@ -31,7 +33,9 @@ const Dashboard = () => {
         }).catch((e) => {
             console.log(e);
         }).finally(() => {
-            setAuth(null);
+            dispatch(setAuth(null));
+            navigate("/login");
+            localStorage.removeItem("authData");
         });
     };
 
@@ -44,7 +48,8 @@ const Dashboard = () => {
                 "Authorization": `Bearer ${auth?.token}`,
             },
         }).then((res) => res.json()).then((r) => {
-            setFilesData(r);
+            dispatch(setSharedFiles({ shared_files_list: r.shared_files }));
+            dispatch(setOwnerFiles({ owner_files_list: r.owner_files }));
         }).catch((e) => {
             console.log(e);
         }).finally(() => {
@@ -77,14 +82,14 @@ const Dashboard = () => {
                     {activeTab === "myFiles" && (
                         <TableView
                             title="My Files"
-                            files={filesData.owner_files}
+                            files={fileData.owner_files_list}
                             activeTab={activeTab}
                         />
                     )}
                     {activeTab === "sharedFiles" && (
                         <TableView
                             title="Shared Files"
-                            files={filesData.shared_files}
+                            files={fileData.shared_files_list}
                             activeTab={activeTab}
                         />
                     )}
@@ -106,37 +111,6 @@ const Dashboard = () => {
                 )}
             </div>
         </>
-    );
-};
-
-const TableView = ({ title, files, activeTab }) => {
-    return (
-        <div className="table-view">
-            <h3>{title}</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>File Name</th>
-                        <th>File Owner</th>
-                        {activeTab === "myFiles" && <th>Manage Access</th>}
-                    </tr>
-                </thead>
-                <tbody>
-                    {files.map(file => (
-                        <tr key={file.id}>
-                            <td>{file.file_name}</td>
-                            <td>{file.owner}</td>
-                            {
-                                activeTab === "myFiles" &&
-                                <td>
-                                    <button>Manage</button>
-                                </td>
-                            }
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
     );
 };
 

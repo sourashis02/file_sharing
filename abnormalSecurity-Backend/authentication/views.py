@@ -75,9 +75,7 @@ class LogoutView(APIView):
         token = request.headers.get('Authorization')
         if not token or not token.startswith('Bearer '):
             return Response({"error": "Authorization token is missing or invalid."}, status=status.HTTP_400_BAD_REQUEST)
-
         token = token.replace('Bearer ', '')
-
         try:
             user = request.user
             for tokens in user.tokens:

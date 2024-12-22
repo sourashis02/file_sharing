@@ -49,10 +49,13 @@ class FileUploadAPIView(APIView):
                 tag=tag.hex()
             )
             response_data = {
-                "id": fileId.id,
-                "file_name": encrypted_file_name,
-                "file_path": encrypted_file_path,
-                "message": "File uploaded successfully."
+                "message": "File uploaded successfully.",
+                "file": {
+                    "id": fileId.id,
+                    "file_name": fileId.name,
+                    "file_path": fileId.filePath,
+                    "owner": request.user.name
+                }
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
 
@@ -101,6 +104,15 @@ class FileDownloadAPIView(APIView):
             file = FileData.objects.get(id=int(id))
         except FileData.DoesNotExist:
             return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        checkFilePermissionToDownload=False
+        
+        if request.user.id == file.user.id:
+            checkFilePermissionToDownload=True
+        elif SharedWith.objects.filter(file=file,user=request.user).exists():
+            checkFilePermissionToDownload=True
+        if not checkFilePermissionToDownload:
+            return Response({"error": "You don't have permission to download this file."}, status=status.HTTP_403_FORBIDDEN)
 
         with open(file.filePath, "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
@@ -123,10 +135,10 @@ class FileDownloadAPIView(APIView):
 class FileShareAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
-        email=request.data.get('email')
+        userList=request.data.get('userList')
         id=request.data.get('id')
-        if not id:
-            return Response({"error": "File ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+        if not id or not userList:
+            return Response({"error": "Invalid Input"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             file = FileData.objects.get(id=int(id))
@@ -135,10 +147,60 @@ class FileShareAPIView(APIView):
 
         if request.user.id != file.user.id:
             return Response({"error": "You cannot share other user's file."}, status=status.HTTP_400_BAD_REQUEST)
-        user=User.objects.get(email=email)
-        if not user:
-            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-        SharedWith.objects.create(file=file,user=user)
+        
+        sharedWithList=SharedWith.objects.filter(file=file)
+        userAccessList=[]
+        for sharedWith in sharedWithList:
+            userAccessList.append(sharedWith.user.email)
+        
+        #Revoking access of users
+        deleteAccessList=[]
+        for sharedWith in sharedWithList:
+            if sharedWith.user.email not in userList:
+                deleteAccessList.append(sharedWith.id)
+           
+        if len(deleteAccessList)>0:     
+            SharedWith.objects.filter(id__in=deleteAccessList).delete() 
+        
+        #Granting access of users
+        newAccessList=[]
+        for email in userList:
+            if email not in userAccessList:
+                newAccessList.append(email)
+        #print(str(userList)+ '' + str(newAccessList))
+        newAccessUserList=User.objects.filter(email__in=newAccessList)
+        #print('New Access '+ str(len(newAccessUserList))+' '+str(newAccessList))
+        if len(newAccessUserList) != len(newAccessList):
+            return Response({"error": "Users not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        SharedWith.objects.bulk_create([
+            SharedWith(file=file, user=user) for user in newAccessUserList
+        ])
         return Response({"message": "File shared successfully."}, status=status.HTTP_200_OK)
+    
+class FileUserAccessAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request,id):
+        if not id:
+            return Response({"error": "File ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            file = FileData.objects.get(id=int(id))
+        except FileData.DoesNotExist:
+            return Response({"error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user.id != file.user.id:
+            return Response({"error": "You cannot access other user's file."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        sharedWithList=SharedWith.objects.filter(file=file)
+        userAccessList=[]
+        for sharedWith in sharedWithList:
+            userAccessList.append({
+                "id":sharedWith.user.id,
+                "name":sharedWith.user.name,
+                "email":sharedWith.user.email,
+                "fileId":sharedWith.file.id
+            })
+        return Response({"users":userAccessList}, status=status.HTTP_200_OK)
         
         

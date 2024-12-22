@@ -2,13 +2,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { API_URL } from "../App";
 import useLoader from "../components/Loader.jsx";
-import { useAuth } from "../components/AuthProvider.jsx";
+import { useDispatch } from "react-redux";
+import { setAuth } from "../redux/authSlice";
 
 const Login = () => {
     const navigate = useNavigate();
     const [loginData, setLoginData] = useState({});
     const { loader, setIsLoading } = useLoader();
-    const { setAuth } = useAuth();
+    const dispatch = useDispatch();
+
 
     const handleInput = (e) => {
         setLoginData(p => {
@@ -25,7 +27,8 @@ const Login = () => {
             body: JSON.stringify(loginData)
         }).then((res) => res.json()).then(r => {
             setIsLoading(false);
-            setAuth(r);
+            dispatch(setAuth(r));
+            localStorage.setItem("authData", JSON.stringify(r));
             navigate("/");
         }).catch(e => {
             setIsLoading(false);
