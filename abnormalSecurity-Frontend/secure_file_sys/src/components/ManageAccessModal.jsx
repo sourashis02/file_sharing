@@ -53,7 +53,7 @@ const ManageAccessModal = ({ onClose, fileId }) => {
                             {accessUsers.map((user, index) => (
                                 <div key={user.id} className="access-user" style={{ display: "flex", justifyContent: "space-between" }}>
                                     <input type="text" value={user.email} onChange={(e) => handleInputUpdate(e, index)} />
-                                    <span style={{ alignSelf: "center" }}>x</span>
+                                    <span style={{ alignSelf: "center" }}><button onClick={() => dispatch(setAccessUsers(accessUsers.filter(u => u.id !== user.id)))}>X</button></span>
                                 </div>
                             ))}
                         </div>

@@ -137,7 +137,7 @@ class FileShareAPIView(APIView):
     def post(self, request):
         userList=request.data.get('userList')
         id=request.data.get('id')
-        if not id or not userList:
+        if not id:
             return Response({"error": "Invalid Input"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:

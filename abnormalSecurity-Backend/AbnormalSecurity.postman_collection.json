@@ -1,0 +1,126 @@
+{
+	"info": {
+		"_postman_id": "7e0fef8d-efdd-4156-a98e-b21c7df15626",
+		"name": "AbnormalSec",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "17954471",
+		"_collection_link": "https://dark-spaceship-279366.postman.co/workspace/Team-Workspace~45b580cf-2718-4942-81b4-a5b447336746/collection/17954471-7e0fef8d-efdd-4156-a98e-b21c7df15626?action=share&source=collection_link&creator=17954471"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8000/auth/signup/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"shyam@abnormalsecurity.com\",\n    \"password\": \"Shyam@2024\",\n    \"name\": \"Shyam Das\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/auth/signup/"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/auth/login/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"ram@abnormalsecurity.com\",\n    \"password\": \"Ram@2024\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/auth/login/"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/file/upload/",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0NTI2MzY1LCJpYXQiOjE3MzQ1MjYwNjUsImp0aSI6IjEzNWE3YTlkZDMwNzRiZGQ5ODc5MDQwZTg3ZGE1YWJmIiwidXNlcl9pZCI6MX0.hOw_ZlBGt_-ZD_4omiIxr6Z_QOCWjLeUYuviuEyJol8"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/sourashispaul/Desktop/Sourashis/Screenshot 2024-12-16 at 1.06.39 AM.png"
+						}
+					]
+				},
+				"url": "http://localhost:8000/file/upload/"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/file/list/",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0OTY5MjQ4LCJpYXQiOjE3MzQ4ODI4NDgsImp0aSI6IjZiN2E1MjQ5MjUzNDQ5MWNhNjMzZDY2NDNhMzkzZWI2IiwidXNlcl9pZCI6NH0.NB-KVDf5FSGpqLfQriVsBH4Xsbqei8SO8CbBJHk1wpg"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8000/file/list/"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/file/download/6/",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0NTI2MTQyLCJpYXQiOjE3MzQ1MjU4NDIsImp0aSI6IjNkNWIyZmQ2Y2ZkODQzZmViOWE3YjUzNzhjZTc1ZGQxIiwidXNlcl9pZCI6MX0.IN_ByuighIpTbJ4bOrKJ3SMIyMjK20rylUQCYGgDW10"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8000/file/download/6/"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/file/share/",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0OTY5MjQ4LCJpYXQiOjE3MzQ4ODI4NDgsImp0aSI6IjZiN2E1MjQ5MjUzNDQ5MWNhNjMzZDY2NDNhMzkzZWI2IiwidXNlcl9pZCI6NH0.NB-KVDf5FSGpqLfQriVsBH4Xsbqei8SO8CbBJHk1wpg"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userList\": [\"ram@abnormalsecurity.com\"],\n    \"id\":8\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/file/share/"
+			},
+			"response": []
+		}
+	]
+}
