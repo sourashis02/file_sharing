@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import datetime
 from django.http import HttpResponse
 from users.models import CustomUser as User
+import hashlib
 
 
 def encrypt_at_rest(data, key):
@@ -21,25 +22,44 @@ def decrypt_file(encrypted_data, key, nonce, tag):
     cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
     decrypted_data = cipher.decrypt_and_verify(encrypted_data, tag)
     return decrypted_data
+
+def calculate_hash(file_path):
+    hash_object = hashlib.sha256()
+    
+    with open(file_path, 'rb') as file:  # Open the file in binary mode
+        while chunk := file.read(4096):  # Read the file in chunks
+            hash_object.update(chunk)  # Update the hash with each chunk
+    
+    return hash_object.hexdigest()
     
     
 class FileUploadAPIView(APIView):
     permission_classes=[IsAuthenticated]
     def post(self, request, *args, **kwargs):
         file = request.FILES.get('file')
+        hash=request.data.get('hash')
+        # print("hash",hash)
         if not file:
             return Response({"error": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             file_data = file.read()
             key = get_random_bytes(32)
-
+            
             nonce, tag, ciphertext = encrypt_at_rest(file_data, key)
 
             encrypted_file_name = f"encrypted_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.name}"
             encrypted_file_path = default_storage.save(
                 encrypted_file_name, ContentFile(ciphertext)
             )
+            
+            calculated_hash = calculate_hash(encrypted_file_path)
+            print("calculated_hash",calculated_hash)
+            print("hash",hash)
+            if hash != calculated_hash:
+                return Response({"error": "File hash does not match."}, status=status.HTTP_400_BAD_REQUEST)
+
+            
             fileId=FileData.objects.create(
                 name=file.name,
                 user=request.user,

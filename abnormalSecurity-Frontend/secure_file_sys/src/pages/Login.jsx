@@ -25,7 +25,12 @@ const Login = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(loginData)
-        }).then((res) => res.json()).then(r => {
+        }).then(async (res) => {
+            if (!res.ok) {
+                throw new Error(await res.text());
+            }
+            return res.json();
+        }).then(r => {
             setIsLoading(false);
             dispatch(setAuth(r));
             localStorage.setItem("authData", JSON.stringify(r));

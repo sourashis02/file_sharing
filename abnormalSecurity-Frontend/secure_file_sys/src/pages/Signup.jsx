@@ -21,7 +21,12 @@ const Signup = () => {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(signupData)
-            }).then((res) => res.json()).then(r => {
+            }).then(async (res) => {
+                if (!res.ok) {
+                    throw new Error(await res.text());
+                }
+                return res.json();
+            }).then(r => {
                 setIsLoading(false);
                 navigate("/login");
             }).catch(e => {

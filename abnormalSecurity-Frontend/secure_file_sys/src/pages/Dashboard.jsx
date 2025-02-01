@@ -47,11 +47,19 @@ const Dashboard = () => {
             headers: {
                 "Authorization": `Bearer ${auth?.token}`,
             },
-        }).then((res) => res.json()).then((r) => {
+        }).then(async (res) => {
+            if (!res.ok) {
+                throw new Error(await res.text());
+            }
+            return res.json();
+        }).then((r) => {
             dispatch(setSharedFiles({ shared_files_list: r.shared_files }));
             dispatch(setOwnerFiles({ owner_files_list: r.owner_files }));
         }).catch((e) => {
             console.log(e);
+            dispatch(setAuth(null));
+            navigate("/login");
+            localStorage.removeItem("authData");
         }).finally(() => {
             setIsLoading(false);
         });

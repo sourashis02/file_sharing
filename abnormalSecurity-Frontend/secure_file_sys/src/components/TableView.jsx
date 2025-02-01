@@ -21,7 +21,12 @@ const TableView = ({ title, files, activeTab }) => {
             headers: {
                 "Authorization": `Bearer ${auth?.token}`,
             },
-        }).then((res) => res.blob()).then((blob) => {
+        }).then(async (res) => {
+            if (!res.ok) {
+                throw new Error(await res.text());
+            }
+            return res.blob();
+        }).then((blob) => {
             setIsLoading(false);
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -43,7 +48,12 @@ const TableView = ({ title, files, activeTab }) => {
             headers: {
                 "Authorization": `Bearer ${auth?.token}`,
             },
-        }).then((res) => res.json()).then((r) => {
+        }).then(async (res) => {
+            if (!res.ok) {
+                throw new Error(await res.text());
+            }
+            return res.json();
+        }).then((r) => {
             dispatch(setAccessUsers(r.users));
             setIsLoading(false);
             setModalData({

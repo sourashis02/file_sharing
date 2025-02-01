@@ -34,6 +34,10 @@ const ManageAccessModal = ({ onClose, fileId }) => {
                 id: fileId,
                 userList: accessUsers.map(user => user.email)
             })
+        }).then(async (res) => {
+            if (!res.ok) {
+                throw new Error(await res.text());
+            }
         }).catch((e) => {
             alert(e.message);
         }).finally(() => {
