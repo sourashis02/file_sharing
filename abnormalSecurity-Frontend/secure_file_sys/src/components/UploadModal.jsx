@@ -8,6 +8,9 @@ async function calculateFileHash(file) {
     // Read the file as an ArrayBuffer
     const fileBuffer = await file.arrayBuffer();
 
+    // Log the file buffer for debugging
+    console.log('File Buffer:', new Uint8Array(fileBuffer));
+
     // Generate the hash using SHA-256
     const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
 

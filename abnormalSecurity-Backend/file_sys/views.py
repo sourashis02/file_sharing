@@ -23,14 +23,14 @@ def decrypt_file(encrypted_data, key, nonce, tag):
     decrypted_data = cipher.decrypt_and_verify(encrypted_data, tag)
     return decrypted_data
 
+
 def calculate_hash(file_path):
     hash_object = hashlib.sha256()
     
-    with open(file_path, 'rb') as file:  # Open the file in binary mode
-        while chunk := file.read(4096):  # Read the file in chunks
-            hash_object.update(chunk)  # Update the hash with each chunk
+    hash_object.update(file_path)
+    hash_hex = hash_object.hexdigest()
     
-    return hash_object.hexdigest()
+    return hash_hex
     
     
 class FileUploadAPIView(APIView):
@@ -53,7 +53,7 @@ class FileUploadAPIView(APIView):
                 encrypted_file_name, ContentFile(ciphertext)
             )
             
-            calculated_hash = calculate_hash(encrypted_file_path)
+            calculated_hash = calculate_hash(file_data)
             print("calculated_hash",calculated_hash)
             print("hash",hash)
             if hash != calculated_hash:
